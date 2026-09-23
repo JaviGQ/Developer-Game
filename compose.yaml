@@ -6,12 +6,21 @@ services:
     volumes:
       - ./api/app:/app/app
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
 
   db:
     image: postgres:18
     env_file: .env
     volumes:
       - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   pgdata:
