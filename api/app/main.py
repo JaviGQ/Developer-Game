@@ -1,8 +1,21 @@
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse
+from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 
-app = FastAPI(title="Development App")
+from app.db import engine
+
+app = FastAPI(title="DeveloperGame")
 
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok"}
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+    except SQLAlchemyError:
+        return JSONResponse(
+            status_code=503,
+            content={"status": "error", "database": "unreachable"},
+        )
+    return {"status": "ok", "database": "ok"}
