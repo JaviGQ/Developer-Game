@@ -5,6 +5,8 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app.db import engine
 
+from app.auth import CurrentUser
+
 app = FastAPI(title="DeveloperGame")
 
 
@@ -19,3 +21,7 @@ def health():
             content={"status": "error", "database": "unreachable"},
         )
     return {"status": "ok", "database": "ok"}
+
+@app.get("/api/me")
+def me(user: CurrentUser):
+    return {"id": user.id, "email": user.email, "name": user.name}

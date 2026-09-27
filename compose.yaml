@@ -12,6 +12,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    environment:
+      - APP_ENV=development
   db:
     image: postgres:18
     env_file: .env
@@ -38,3 +40,4 @@ services:
 
 volumes:
   pgdata:
+
