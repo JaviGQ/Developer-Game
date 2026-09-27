@@ -1,5 +1,5 @@
 from typing import Literal
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 import json
 
 
@@ -39,3 +39,17 @@ def parse_plan(text: str) -> PlanImport:
             f"Invalid JSON at line {e.lineno}, column {e.colno}: {e.msg}"
         ) from e
     return PlanImport.model_validate(data)
+
+def format_validation_errors(error: ValidationError) -> list[str]:
+    messages = []
+    for err in error.errors():
+        loc = list(err["loc"])
+        if len(loc) >= 2 and loc[0] == "milestones" and isinstance(loc[1], int):
+            prefix = f"Milestone {loc[1] + 1}"
+            path = loc[2:]
+        else:
+            prefix = "Plan"
+            path = loc
+        field = ".".join(str(part) for part in path)
+        messages.append(f"{prefix}: {field}: {err['msg']}" if field else f"{prefix}: {err['msg']}")
+    return messages

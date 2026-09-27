@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from app.plan_import import PlanParseError, parse_plan
+from app.plan_import import PlanParseError, parse_plan, format_validation_errors
 
 FIXTURE = Path(__file__).parent / "fixtures" / "progression-app.plan.json"
 
@@ -57,3 +57,11 @@ def test_missing_field_reports_location():
     with pytest.raises(ValidationError) as exc_info:
         parse_plan(json.dumps(data))
     assert exc_info.value.errors()[0]["loc"] == ("milestones", 0, "acceptance_criteria")
+
+def test_formats_errors_with_human_milestone_numbers():
+    data = minimal_plan()
+    del data["milestones"][0]["acceptance_criteria"]
+    with pytest.raises(ValidationError) as exc_info:
+        parse_plan(json.dumps(data))
+    messages = format_validation_errors(exc_info.value)
+    assert "Milestone 1: acceptance_criteria: Field required" in messages
