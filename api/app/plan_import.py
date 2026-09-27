@@ -1,6 +1,6 @@
 from typing import Literal
-
 from pydantic import BaseModel, Field
+import json
 
 
 class PlanMilestone(BaseModel):
@@ -23,3 +23,19 @@ class PlanImport(BaseModel):
     summary: str
     context: PlanContext = Field(default_factory=PlanContext)
     milestones: list[PlanMilestone] = Field(min_length=1)
+
+class PlanParseError(ValueError):
+    pass
+
+
+def parse_plan(text: str) -> PlanImport:
+    start = text.find("{")
+    if start == -1:
+        raise PlanParseError("No JSON object found in the input.")
+    try:
+        data, _ = json.JSONDecoder().raw_decode(text, start)
+    except json.JSONDecodeError as e:
+        raise PlanParseError(
+            f"Invalid JSON at line {e.lineno}, column {e.colno}: {e.msg}"
+        ) from e
+    return PlanImport.model_validate(data)
