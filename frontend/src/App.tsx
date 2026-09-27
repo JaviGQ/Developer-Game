@@ -18,7 +18,7 @@ function App() {
 
   return (
     <main>
-      <h1>DeveloperGame</h1>
+      <h1>Developer Game</h1>
       <p>API: {health.status}</p>
       <p>Database: {health.database}</p>
     </main>
