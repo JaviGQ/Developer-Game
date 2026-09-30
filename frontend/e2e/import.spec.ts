@@ -1,17 +1,5 @@
 import { expect, test } from '@playwright/test'
-
-function validPlan(title: string, milestoneCount = 1): string {
-  return JSON.stringify({
-    schema_version: '1',
-    title,
-    summary: 'Created by an end-to-end test',
-    milestones: Array.from({ length: milestoneCount }, (_, i) => ({
-      title: `Milestone ${i + 1}`,
-      description: 'Do the thing',
-      acceptance_criteria: ['It works'],
-    })),
-  })
-}
+import { validPlan } from './helpers.js'
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/')
