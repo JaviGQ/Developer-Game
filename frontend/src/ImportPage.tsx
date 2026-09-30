@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import type { ChangeEvent } from 'react'
 import { ApiError, importPlan, previewPlan } from './api'
 import PlanPreview from './PlanPreview'
@@ -11,6 +11,13 @@ function ImportPage() {
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState<ImportResponse | null>(null)
+  const errorsRef = useRef<HTMLUListElement>(null)
+
+  useEffect(() => {
+    if (errors.length > 0) {
+      errorsRef.current?.scrollIntoView({ block: 'nearest' })
+    }
+  }, [errors])
 
   function updateText(value: string) {
     setText(value)
@@ -97,7 +104,7 @@ function ImportPage() {
       )}
       
       {errors.length > 0 && (
-        <ul role="alert">
+        <ul role="alert" ref={errorsRef}>
           {errors.map((message) => (
             <li key={message}>{message}</li>
           ))}
