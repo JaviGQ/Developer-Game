@@ -19,3 +19,9 @@ export type PlanImport = {
   context: PlanContext
   milestones: PlanMilestone[]
 }
+
+export type ImportResponse = {
+  id: number
+  title: string
+  milestone_count: number
+}

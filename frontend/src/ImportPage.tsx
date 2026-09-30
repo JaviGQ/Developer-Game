@@ -1,13 +1,16 @@
 import { useState } from 'react'
 import type { ChangeEvent } from 'react'
-import { ApiError, previewPlan } from './api'
-import type { PlanImport } from './types'
+import { ApiError, importPlan, previewPlan } from './api'
+import PlanPreview from './PlanPreview'
+import type { ImportResponse, PlanImport } from './types'
 
 function ImportPage() {
   const [text, setText] = useState('')
   const [plan, setPlan] = useState<PlanImport | null>(null)
   const [errors, setErrors] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState<ImportResponse | null>(null)
 
   function updateText(value: string) {
     setText(value)
@@ -34,6 +37,37 @@ function ImportPage() {
     }
   }
 
+    async function handleSave() {
+    setSaving(true)
+    setErrors([])
+    try {
+      setSaved(await importPlan(text))
+    } catch (err) {
+      setErrors(err instanceof ApiError ? err.messages : ['Could not reach the server'])
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  function reset() {
+    setSaved(null)
+    updateText('')
+  }
+
+    if (saved) {
+    return (
+      <main>
+        <h1>Plan imported</h1>
+        <p>
+          "{saved.title}" was created with {saved.milestone_count} milestones.
+        </p>
+        <button type="button" onClick={reset}>
+          Import another
+        </button>
+      </main>
+    )
+  }
+
   return (
     <main>
       <h1>Import a plan</h1>
@@ -51,20 +85,23 @@ function ImportPage() {
 
       <button type="button" onClick={handlePreview} disabled={!text.trim() || loading}>
         {loading ? 'Checking…' : 'Preview'}
-      </button>
+      </button>      
 
+            {plan && (
+        <>
+          <PlanPreview plan={plan} />
+          <button type="button" onClick={handleSave} disabled={saving}>
+            {saving ? 'Saving…' : 'Save project'}
+          </button>
+        </>
+      )}
+      
       {errors.length > 0 && (
         <ul role="alert">
           {errors.map((message) => (
             <li key={message}>{message}</li>
           ))}
         </ul>
-      )}
-
-      {plan && (
-        <p>
-          Valid plan: {plan.title} ({plan.milestones.length} milestones)
-        </p>
       )}
     </main>
   )

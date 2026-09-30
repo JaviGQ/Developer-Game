@@ -1,4 +1,4 @@
-import type { PlanImport } from './types'
+import type { ImportResponse, PlanImport } from './types'
 
 export class ApiError extends Error {
   messages: string[]
@@ -16,19 +16,27 @@ async function readErrors(res: Response): Promise<string[]> {
       return body.detail
     }
   } catch {
-    // Response wasn't JSON; fall through to the generic message
+    // Response was not JSON
   }
   return [`Request failed (${res.status})`]
 }
 
-export async function previewPlan(text: string): Promise<PlanImport> {
-  const res = await fetch('/api/projects/import/preview', {
+async function postJson<T>(url: string, payload: unknown): Promise<T> {
+  const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ text }),
+    body: JSON.stringify(payload),
   })
   if (!res.ok) {
     throw new ApiError(await readErrors(res))
   }
   return res.json()
+}
+
+export function previewPlan(text: string): Promise<PlanImport> {
+  return postJson<PlanImport>('/api/projects/import/preview', { text })
+}
+
+export function importPlan(text: string): Promise<ImportResponse> {
+  return postJson<ImportResponse>('/api/projects/import', { text })
 }
