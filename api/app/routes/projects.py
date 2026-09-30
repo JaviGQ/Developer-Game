@@ -1,7 +1,9 @@
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, ConfigDict, ValidationError
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 from app.auth import CurrentUser
 from app.db import DbSession
@@ -19,6 +21,33 @@ class ImportResponse(BaseModel):
     id: int
     title: str
     milestone_count: int
+
+class ProjectSummary(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    title: str
+    status: str
+    version: int
+
+
+class MilestoneOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    position: int
+    title: str
+    description: str
+    acceptance_criteria: list[str]
+    completed_at: datetime | None
+
+
+class ProjectDetail(ProjectSummary):
+    summary: str | None
+    context: dict | None
+    created_at: datetime
+    completed_at: datetime | None
+    milestones: list[MilestoneOut]
 
 
 @router.post("/import", status_code=status.HTTP_201_CREATED, response_model=ImportResponse)
@@ -53,6 +82,26 @@ def import_plan(body: ImportRequest, user: CurrentUser, db: DbSession):
 
     db.commit()
     return ImportResponse(id=project.id, title=project.title, milestone_count=len(plan.milestones))
+
+@router.get("", response_model=list[ProjectSummary])
+def list_projects(user: CurrentUser, db: DbSession):
+    return db.scalars(
+        select(Project)
+        .where(Project.user_id == user.id)
+        .order_by(Project.created_at.desc())
+    ).all()
+
+
+@router.get("/{project_id}", response_model=ProjectDetail)
+def get_project(project_id: int, user: CurrentUser, db: DbSession):
+    project = db.scalar(
+        select(Project)
+        .where(Project.id == project_id, Project.user_id == user.id)
+        .options(selectinload(Project.milestones))
+    )
+    if project is None:
+        raise HTTPException(status_code=404, detail=["Project not found"])
+    return project
 
 def parse_or_http_error(text: str) -> PlanImport:
     try:

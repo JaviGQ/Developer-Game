@@ -2,7 +2,7 @@ from datetime import datetime
 
 from sqlalchemy import DateTime, ForeignKey, String, Text, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
 class Base(DeclarativeBase):
@@ -41,6 +41,7 @@ class Project(Base):
         DateTime(timezone=True), server_default=func.now()
     )
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    milestones: Mapped[list["Milestone"]] = relationship(order_by="Milestone.position")
 
 
 class Milestone(Base):
