@@ -45,7 +45,7 @@
       "title": "Add the React frontend and connect it through the proxy",
       "description": "Scaffold a Vite + React + TypeScript app, proxy /api to FastAPI, and add it to Docker Compose.",
       "acceptance_criteria": ["The React page displays the API health status", "The browser only talks to one origin", "All three services start with one command"],
-      "completed": false
+      "completed": true
     },
     {
       "title": "Define database models and the first migration",
@@ -63,7 +63,7 @@
       "title": "Build the plan importer backend",
       "description": "Define the import schema as a Pydantic model, strip code fences and surrounding text, and return clear validation errors.",
       "acceptance_criteria": ["This file imports successfully", "Fenced or prefixed JSON still parses", "A missing field returns an error naming the milestone and field"],
-      "completed": false
+      "completed": true
     },
     {
       "title": "Build the import preview and save flow",

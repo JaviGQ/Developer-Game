@@ -6,7 +6,7 @@ from pydantic import BaseModel, ValidationError
 from app.auth import CurrentUser
 from app.db import DbSession
 from app.models import Milestone, Project
-from app.plan_import import PlanParseError, format_validation_errors, parse_plan
+from app.plan_import import PlanImport, PlanParseError, format_validation_errors, parse_plan
 
 router = APIRouter(prefix="/api/projects", tags=["projects"])
 
@@ -23,12 +23,7 @@ class ImportResponse(BaseModel):
 
 @router.post("/import", status_code=status.HTTP_201_CREATED, response_model=ImportResponse)
 def import_plan(body: ImportRequest, user: CurrentUser, db: DbSession):
-    try:
-        plan = parse_plan(body.text)
-    except PlanParseError as e:
-        raise HTTPException(status_code=400, detail=[str(e)])
-    except ValidationError as e:
-        raise HTTPException(status_code=422, detail=format_validation_errors(e))
+    plan = parse_or_http_error(body.text)
 
     now = datetime.now(timezone.utc)
     all_done = all(m.completed for m in plan.milestones)
@@ -58,3 +53,15 @@ def import_plan(body: ImportRequest, user: CurrentUser, db: DbSession):
 
     db.commit()
     return ImportResponse(id=project.id, title=project.title, milestone_count=len(plan.milestones))
+
+def parse_or_http_error(text: str) -> PlanImport:
+    try:
+        return parse_plan(text)
+    except PlanParseError as e:
+        raise HTTPException(status_code=400, detail=[str(e)])
+    except ValidationError as e:
+        raise HTTPException(status_code=422, detail=format_validation_errors(e))
+
+@router.post("/import/preview", response_model=PlanImport)
+def preview_import(body: ImportRequest, user: CurrentUser):
+    return parse_or_http_error(body.text)
