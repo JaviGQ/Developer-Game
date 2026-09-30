@@ -2,16 +2,19 @@ import { useState, useRef, useEffect } from 'react'
 import type { ChangeEvent } from 'react'
 import { ApiError, importPlan, previewPlan } from './api'
 import PlanPreview from './PlanPreview'
-import type { ImportResponse, PlanImport } from './types'
+import { useNavigate, useOutletContext } from 'react-router'
+import type { LayoutContext } from './Layout'
+import type { PlanImport } from './types'
 
 function ImportPage() {
   const [text, setText] = useState('')
   const [plan, setPlan] = useState<PlanImport | null>(null)
   const [errors, setErrors] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState<ImportResponse | null>(null)
+  const [saving, setSaving] = useState(false)  
   const errorsRef = useRef<HTMLUListElement>(null)
+  const navigate = useNavigate()
+  const { refreshProjects } = useOutletContext<LayoutContext>()
 
   useEffect(() => {
     if (errors.length > 0) {
@@ -48,31 +51,14 @@ function ImportPage() {
     setSaving(true)
     setErrors([])
     try {
-      setSaved(await importPlan(text))
+        const created = await importPlan(text)
+        refreshProjects()
+        navigate(`/projects/${created.id}`)
     } catch (err) {
       setErrors(err instanceof ApiError ? err.messages : ['Could not reach the server'])
     } finally {
       setSaving(false)
     }
-  }
-
-  function reset() {
-    setSaved(null)
-    updateText('')
-  }
-
-    if (saved) {
-    return (
-      <main>
-        <h1>Plan imported</h1>
-        <p>
-          "{saved.title}" was created with {saved.milestone_count} milestones.
-        </p>
-        <button type="button" onClick={reset}>
-          Import another
-        </button>
-      </main>
-    )
   }
 
   return (

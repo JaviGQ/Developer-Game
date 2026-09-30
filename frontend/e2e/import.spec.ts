@@ -69,8 +69,10 @@ test('previews and saves a valid plan', async ({ page }) => {
   await page.getByPlaceholder('Paste your plan here').fill(validPlan(title))
   await page.getByRole('button', { name: 'Preview' }).click()
   await expect(page.getByRole('heading', { name: title })).toBeVisible()
-
   await page.getByRole('button', { name: 'Save project' }).click()
-  await expect(page.getByRole('heading', { name: 'Plan imported' })).toBeVisible()
-  await expect(page.getByText(title)).toBeVisible()
+  await expect(page).toHaveURL(/\/projects\/\d+$/)
+  await expect(page.getByRole('heading', { name: title })).toBeVisible()
+  await expect(
+    page.getByRole('navigation', { name: 'Projects' }).getByRole('link', { name: title }),
+  ).toBeVisible()
 })

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router'
-import { ApiError, getProject } from './api'
+import { useOutletContext, useParams } from 'react-router'
+import { ApiError, getProject, renameProject } from './api'
+import EditableTitle from './EditableTitle'
+import type { LayoutContext } from './Layout'
 import type { ProjectDetail } from './types'
 
 type LoadResult = {
@@ -13,8 +15,16 @@ function ProjectPage() {
   const { projectId } = useParams()
   const id = Number(projectId)
   const validId = Number.isInteger(id) && id > 0
-
+  const { refreshProjects } = useOutletContext<LayoutContext>()
   const [result, setResult] = useState<LoadResult | null>(null)
+
+  async function handleRename(title: string) {
+    const updated = await renameProject(id, title)
+    setResult((prev) =>
+      prev?.project ? { ...prev, project: { ...prev.project, title: updated.title } } : prev,
+    )
+    refreshProjects()
+  }
 
   useEffect(() => {
     if (!validId) return
@@ -58,7 +68,7 @@ function ProjectPage() {
 
   return (
     <article>
-      <h1>{project.title}</h1>
+        <EditableTitle title={project.title} onSave={handleRename} />
       <p>
         {done} of {total} milestones complete
       </p>

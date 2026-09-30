@@ -1,18 +1,12 @@
-import { useEffect, useState } from 'react'
 import { NavLink } from 'react-router'
-import { listProjects } from './api'
 import type { ProjectSummary } from './types'
 
-function Sidebar() {
-  const [projects, setProjects] = useState<ProjectSummary[] | null>(null)
-  const [error, setError] = useState(false)
+type Props = {
+  projects: ProjectSummary[] | null
+  error: boolean
+}
 
-  useEffect(() => {
-    listProjects()
-      .then(setProjects)
-      .catch(() => setError(true))
-  }, [])
-
+function Sidebar({ projects, error }: Props) { 
   return (
     <nav className="sidebar" aria-label="Projects">
       <NavLink to="/" end>
