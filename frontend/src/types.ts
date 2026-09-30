@@ -25,3 +25,27 @@ export type ImportResponse = {
   title: string
   milestone_count: number
 }
+
+export type ProjectSummary = {
+  id: number
+  title: string
+  status: string
+  version: number
+}
+
+export type MilestoneOut = {
+  id: number
+  position: number
+  title: string
+  description: string
+  acceptance_criteria: string[]
+  completed_at: string | null
+}
+
+export type ProjectDetail = ProjectSummary & {
+  summary: string | null
+  context: PlanContext | null
+  created_at: string
+  completed_at: string | null
+  milestones: MilestoneOut[]
+}

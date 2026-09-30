@@ -1,4 +1,4 @@
-import type { ImportResponse, PlanImport } from './types'
+import type { ImportResponse, PlanImport, ProjectSummary, ProjectDetail } from './types'
 
 export class ApiError extends Error {
   messages: string[]
@@ -21,16 +21,28 @@ async function readErrors(res: Response): Promise<string[]> {
   return [`Request failed (${res.status})`]
 }
 
-async function postJson<T>(url: string, payload: unknown): Promise<T> {
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  })
+async function request<T>(url: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(url, init)
   if (!res.ok) {
     throw new ApiError(await readErrors(res))
   }
   return res.json()
+}
+
+function postJson<T>(url: string, payload: unknown): Promise<T> {
+  return request<T>(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+}
+
+export function getProject(id: number): Promise<ProjectDetail> {
+  return request<ProjectDetail>(`/api/projects/${id}`)
+}
+
+export function listProjects(): Promise<ProjectSummary[]> {
+  return request<ProjectSummary[]>('/api/projects')
 }
 
 export function previewPlan(text: string): Promise<PlanImport> {
@@ -40,3 +52,4 @@ export function previewPlan(text: string): Promise<PlanImport> {
 export function importPlan(text: string): Promise<ImportResponse> {
   return postJson<ImportResponse>('/api/projects/import', { text })
 }
+
