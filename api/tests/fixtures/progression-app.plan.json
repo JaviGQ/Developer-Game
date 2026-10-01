@@ -75,7 +75,7 @@
       "title": "Build the sidebar and project view",
       "description": "List the user's projects in a sidebar and show the project summary and context, with an editable title.",
       "acceptance_criteria": ["The sidebar lists only the logged-in user's projects", "Renaming a project updates the sidebar", "Refreshing the page keeps state"],
-      "completed": false
+      "completed": true
     },
     {
       "title": "Add milestone pages, the Next button, and the progress bar",

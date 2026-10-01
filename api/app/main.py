@@ -4,11 +4,12 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.db import engine
-from app.routes import projects
+from app.routes import projects, milestones
 from app.auth import CurrentUser
 
 app = FastAPI(title="DeveloperGame")
 app.include_router(projects.router)
+app.include_router(milestones.router)
 
 @app.get("/api/health")
 def health():
