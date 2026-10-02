@@ -1,67 +1,32 @@
-import { useEffect, useState } from 'react'
-import { useOutletContext, useParams } from 'react-router'
-import { ApiError, getProject, renameProject } from './api'
+import { Link, useOutletContext, useParams } from 'react-router'
+import { renameProject } from './api'
 import EditableTitle from './EditableTitle'
 import type { LayoutContext } from './Layout'
-import type { ProjectDetail } from './types'
-
-type LoadResult = {
-  id: number
-  project: ProjectDetail | null
-  errors: string[]
-}
+import { useProject } from './useProject'
 
 function ProjectPage() {
   const { projectId } = useParams()
-  const id = Number(projectId)
-  const validId = Number.isInteger(id) && id > 0
+  const { project, errors, loading, setProject } = useProject(Number(projectId))
   const { refreshProjects } = useOutletContext<LayoutContext>()
-  const [result, setResult] = useState<LoadResult | null>(null)
 
-  async function handleRename(title: string) {
-    const updated = await renameProject(id, title)
-    setResult((prev) =>
-      prev?.project ? { ...prev, project: { ...prev.project, title: updated.title } } : prev,
-    )
-    refreshProjects()
-  }
-
-  useEffect(() => {
-    if (!validId) return
-    let ignore = false
-
-    getProject(id)
-      .then((project) => {
-        if (!ignore) setResult({ id, project, errors: [] })
-      })
-      .catch((err) => {
-        if (!ignore) {
-          setResult({
-            id,
-            project: null,
-            errors: err instanceof ApiError ? err.messages : ['Could not reach the server'],
-          })
-        }
-      })
-
-    return () => {
-      ignore = true
-    }
-  }, [id, validId])
-
-  if (!validId) return <p role="alert">Project not found</p>
-  if (!result || result.id !== id) return <p>Loading…</p>
-  if (!result.project) {
+  if (loading) return <p>Loading…</p>
+  if (!project) {
     return (
       <ul role="alert">
-        {result.errors.map((message) => (
+        {errors.map((message) => (
           <li key={message}>{message}</li>
         ))}
       </ul>
     )
   }
 
-  const project = result.project
+  async function handleRename(title: string) {
+    const updated = await renameProject(project!.id, title)
+    setProject({ ...project!, title: updated.title })
+    refreshProjects()
+  }
+
+  const firstIncomplete = project.milestones.find((m) => !m.completed_at)  
   const done = project.milestones.filter((m) => m.completed_at).length
   const total = project.milestones.length
   const context = project.context
@@ -82,6 +47,13 @@ function ProjectPage() {
               <strong>Status:</strong> {context.current_status}
             </p>
           )}
+          {firstIncomplete && (
+            <p>
+              <Link to={`/projects/${project.id}/milestones/${firstIncomplete.position}`}>
+                Continue: {firstIncomplete.title}
+              </Link>
+            </p>
+        )}
           {context.stack.length > 0 && (
             <p>
               <strong>Stack:</strong> {context.stack.join(', ')}
@@ -115,7 +87,9 @@ function ProjectPage() {
         {project.milestones.map((m) => (
           <li key={m.id}>
             {m.completed_at ? '✓ ' : ''}
-            <strong>{m.title}</strong>
+            <Link to={`/projects/${project.id}/milestones/${m.position}`}>
+              <strong>{m.title}</strong>
+            </Link>
             <p>{m.description}</p>
           </li>
         ))}
