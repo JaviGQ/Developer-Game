@@ -19,7 +19,7 @@ function CompletePage() {
       origin: { y: 0.6 },
       disableForReducedMotion: true,
     })
-    return () => confetti.reset()
+    return () => { confetti.reset() }
   }, [isComplete])
 
   if (loading) return <p>Loading…</p>
