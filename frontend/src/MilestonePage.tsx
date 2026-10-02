@@ -42,6 +42,7 @@ function MilestonePage() {
   const next = milestones[index + 1]
   const base = `/projects/${project.id}/milestones`
   const done = milestones.filter((m) => m.completed_at).length
+  const readOnly = project.status === 'completed'
   
   async function updateCompleted(completed: boolean) {
     setSaving(true)
@@ -88,8 +89,25 @@ function MilestonePage() {
           <li key={i}>{c}</li>
         ))}
       </ul>
+      
+      {readOnly ? (
+        <>
+          <p>
+            This project is complete, so its milestones are read-only.{' '}
+            <Link to={`/projects/${project.id}/complete`}>View celebration</Link>
+          </p>
+          <nav aria-label="Milestone navigation">
+            {prev && <Link to={`${base}/${prev.position}`}>← Previous</Link>}
+            {next && <Link to={`${base}/${next.position}`}>Next →</Link>}
+          </nav>
+        </>
+      ) : (
+        <nav aria-label="Milestone navigation">
+          {/* your existing nav contents, unchanged */}
+        </nav>
+      )}
 
-            <nav aria-label="Milestone navigation">
+      <nav aria-label="Milestone navigation">
         {prev && <Link to={`${base}/${prev.position}`}>← Previous</Link>}
 
         {milestone.completed_at ? (
