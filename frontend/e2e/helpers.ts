@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test'
-import type { APIRequestContext } from '@playwright/test'
+import type { APIRequestContext, Page } from '@playwright/test'
 
 export function validPlan(title: string, milestoneCount = 1): string {
   return JSON.stringify({
@@ -18,9 +18,19 @@ export function uniqueTitle(label: string): string {
   return `E2E Test Plan ${label} ${Date.now()}`
 }
 
-export async function createProject(request: APIRequestContext, title: string): Promise<number> {
-  const res = await request.post('/api/projects/import', { data: { text: validPlan(title) } })
+export async function createProject(
+  request: APIRequestContext,
+  title: string,
+  milestoneCount = 1,
+): Promise<number> {
+  const res = await request.post('/api/projects/import', {
+    data: { text: validPlan(title, milestoneCount) },
+  })
   expect(res.ok()).toBeTruthy()
   const body = await res.json()
   return body.id
+}
+
+export function sidebarLink(page: Page, title: string) {
+  return page.getByRole('navigation', { name: 'Projects' }).getByRole('link', { name: title })
 }

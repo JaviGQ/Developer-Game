@@ -1,9 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { createProject, uniqueTitle } from './helpers.js'
-
-function sidebarLink(page: import('@playwright/test').Page, title: string) {
-  return page.getByRole('navigation', { name: 'Projects' }).getByRole('link', { name: title })
-}
+import { createProject, sidebarLink, uniqueTitle } from './helpers.js'
 
 test('sidebar lists a project and opens it', async ({ page, request }) => {
   const title = uniqueTitle('Open')
