@@ -36,6 +36,11 @@ function ProjectPage() {
     <article>
         <EditableTitle title={project.title} onSave={handleRename} />
           <ProgressBar done={done} total={total} />
+          {project.status === 'completed' && (
+          <p>
+            <Link to={`/projects/${project.id}/complete`}>🎉 View celebration</Link>
+          </p>
+      )}
       {project.summary && <p>{project.summary}</p>}
 
       {context && (

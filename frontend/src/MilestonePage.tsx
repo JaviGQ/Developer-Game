@@ -4,6 +4,7 @@ import { ApiError, setMilestoneCompleted } from './api'
 import type { LayoutContext } from './Layout'
 import ProgressBar from './ProgressBar'
 import { useProject } from './useProject'
+import type { ProjectDetail } from './types'
 
 function MilestonePage() {
   const { projectId, position } = useParams()
@@ -41,26 +42,31 @@ function MilestonePage() {
   const next = milestones[index + 1]
   const base = `/projects/${project.id}/milestones`
   const done = milestones.filter((m) => m.completed_at).length
-
-  async function updateCompleted(completed: boolean, goTo?: string) {
+  
+  async function updateCompleted(completed: boolean) {
     setSaving(true)
     setError(null)
     try {
-      const updated = await setMilestoneCompleted(project!.id, milestone.id, completed)
-      setProject(updated)
-      refreshProjects()
-      if (goTo) navigate(goTo)
+        const updated = await setMilestoneCompleted(project!.id, milestone.id, completed)
+        setProject(updated)
+        refreshProjects()
+        if (completed) navigate(nextPathAfterComplete(updated))
     } catch (err) {
-      setError({
+        setError({
         milestoneId: milestone.id,
         message: err instanceof ApiError ? err.messages.join(' ') : 'Could not reach the server',
-      })
+        })
     } finally {
-      setSaving(false)
+        setSaving(false)
     }
   }
 
-  const afterComplete = next ? `${base}/${next.position}` : `/projects/${project.id}`
+  function nextPathAfterComplete(updated: ProjectDetail): string {
+    if (updated.status === 'completed') return `/projects/${updated.id}/complete`
+    if (next) return `${base}/${next.position}`
+    const unfinished = updated.milestones.find((m) => !m.completed_at)
+    return unfinished ? `${base}/${unfinished.position}` : `/projects/${updated.id}`
+  }
 
   return (
     <article>
@@ -95,12 +101,8 @@ function MilestonePage() {
           </>
         ) : (
           <>
-            <button
-              type="button"
-              onClick={() => updateCompleted(true, afterComplete)}
-              disabled={saving}
-            >
-              {saving ? 'Saving…' : next ? 'Complete and continue →' : 'Complete final milestone'}
+            <button type="button" onClick={() => updateCompleted(true)} disabled={saving}>
+              {saving ? 'Saving…' : next ? 'Complete and continue →' : 'Complete milestone'}
             </button>
             {next && <Link to={`${base}/${next.position}`}>Skip →</Link>}
           </>

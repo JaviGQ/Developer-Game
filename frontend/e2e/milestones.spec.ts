@@ -71,10 +71,12 @@ test('completing the last milestone completes the project', async ({ page, reque
 
   await page.goto(`/projects/${id}/milestones/1`)
   await page.getByRole('button', { name: 'Complete and continue' }).click()
-  await page.getByRole('button', { name: 'Complete final milestone' }).click()
+  await page.getByRole('button', { name: 'Complete milestone' }).click()
 
-  await expect(page).toHaveURL(new RegExp(`/projects/${id}$`))
-  await expect(progress(page)).toHaveAttribute('aria-valuenow', '2')
+  await expect(page).toHaveURL(new RegExp(`/projects/${id}/complete$`))
+  await expect(page.getByRole('heading', { name: 'Project complete!' })).toBeVisible()
+  await expect(sidebarLink(page, title)).toContainText('✓')
+  //await expect(progress(page)).toHaveAttribute('aria-valuenow', '2')
   await expect(sidebarLink(page, title)).toContainText('✓')
 })
 
