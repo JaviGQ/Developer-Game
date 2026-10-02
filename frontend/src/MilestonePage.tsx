@@ -89,7 +89,7 @@ function MilestonePage() {
           <li key={i}>{c}</li>
         ))}
       </ul>
-      
+
       {readOnly ? (
         <>
           <p>
@@ -103,11 +103,6 @@ function MilestonePage() {
         </>
       ) : (
         <nav aria-label="Milestone navigation">
-          {/* your existing nav contents, unchanged */}
-        </nav>
-      )}
-
-      <nav aria-label="Milestone navigation">
         {prev && <Link to={`${base}/${prev.position}`}>← Previous</Link>}
 
         {milestone.completed_at ? (
@@ -126,6 +121,9 @@ function MilestonePage() {
           </>
         )}
       </nav>
+      )}
+
+      
 
       {error?.milestoneId === milestone.id && <p role="alert">{error.message}</p>}
     </article>

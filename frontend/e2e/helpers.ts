@@ -34,3 +34,19 @@ export async function createProject(
 export function sidebarLink(page: Page, title: string) {
   return page.getByRole('navigation', { name: 'Projects' }).getByRole('link', { name: title })
 }
+
+export async function completeMilestones(
+  request: APIRequestContext,
+  projectId: number,
+  positions?: number[],
+): Promise<void> {
+  const res = await request.get(`/api/projects/${projectId}`)
+  const project = await res.json()
+  for (const m of project.milestones) {
+    if (positions && !positions.includes(m.position)) continue
+    const update = await request.patch(`/api/projects/${projectId}/milestones/${m.id}`, {
+      data: { completed: true },
+    })
+    expect(update.ok()).toBeTruthy()
+  }
+}
