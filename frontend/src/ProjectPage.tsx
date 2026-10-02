@@ -3,6 +3,7 @@ import { renameProject } from './api'
 import EditableTitle from './EditableTitle'
 import type { LayoutContext } from './Layout'
 import { useProject } from './useProject'
+import ProgressBar from './ProgressBar'
 
 function ProjectPage() {
   const { projectId } = useParams()
@@ -34,9 +35,7 @@ function ProjectPage() {
   return (
     <article>
         <EditableTitle title={project.title} onSave={handleRename} />
-      <p>
-        {done} of {total} milestones complete
-      </p>
+          <ProgressBar done={done} total={total} />
       {project.summary && <p>{project.summary}</p>}
 
       {context && (

@@ -45,6 +45,18 @@ export function renameProject(id: number, title: string): Promise<ProjectSummary
   })
 }
 
+export function setMilestoneCompleted(
+  projectId: number,
+  milestoneId: number,
+  completed: boolean,
+): Promise<ProjectDetail> {
+  return request<ProjectDetail>(`/api/projects/${projectId}/milestones/${milestoneId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ completed }),
+  })
+}
+
 export function getProject(id: number): Promise<ProjectDetail> {
   return request<ProjectDetail>(`/api/projects/${id}`)
 }
