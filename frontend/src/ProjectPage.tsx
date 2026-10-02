@@ -1,9 +1,10 @@
 import { Link, useOutletContext, useParams } from 'react-router'
-import { renameProject } from './api'
+import { updateProject } from './api'
 import EditableTitle from './EditableTitle'
 import type { LayoutContext } from './Layout'
 import { useProject } from './useProject'
 import ProgressBar from './ProgressBar'
+import ResumeInsert from './ResumeInsert'
 
 function ProjectPage() {
   const { projectId } = useParams()
@@ -21,9 +22,8 @@ function ProjectPage() {
     )
   }
 
-  async function handleRename(title: string) {
-    const updated = await renameProject(project!.id, title)
-    setProject({ ...project!, title: updated.title })
+    async function handleRename(title: string) {
+    setProject(await updateProject(project!.id, { title }))
     refreshProjects()
   }
 
@@ -37,9 +37,7 @@ function ProjectPage() {
         <EditableTitle title={project.title} onSave={handleRename} />
           <ProgressBar done={done} total={total} />
           {project.status === 'completed' && (
-          <p>
-            <Link to={`/projects/${project.id}/complete`}>🎉 View celebration</Link>
-          </p>
+          <ResumeInsert project={project} onSaved={setProject} />          
       )}
       {project.summary && <p>{project.summary}</p>}
 

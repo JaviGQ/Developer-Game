@@ -25,6 +25,11 @@ def update_milestone(
     db: DbSession,
 ):
     project = get_owned_project(db, user, project_id, selectinload(Project.milestones))
+    if project.status == "completed":
+        raise HTTPException(
+            status_code=409,
+            detail=["This project is completed. Start a new version to keep working on it."],
+        )
     milestone = next((m for m in project.milestones if m.id == milestone_id), None)
     if milestone is None:
         raise HTTPException(status_code=404, detail=["Milestone not found"])

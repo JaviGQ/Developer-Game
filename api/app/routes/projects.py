@@ -48,12 +48,18 @@ class MilestoneOut(BaseModel):
 class ProjectDetail(ProjectSummary):
     summary: str | None
     context: dict | None
+    resume_insert: str | None
     created_at: datetime
     completed_at: datetime | None
     milestones: list[MilestoneOut]
 
+ResumeInsert = Annotated[str, StringConstraints(strip_whitespace=True, max_length=5000)]
+
 class ProjectUpdate(BaseModel):
-    title: ProjectTitle
+    title: ProjectTitle | None = None
+    resume_insert: ResumeInsert | None = None
+
+
 
 @router.post("/import", status_code=status.HTTP_201_CREATED, response_model=ImportResponse)
 def import_plan(body: ImportRequest, user: CurrentUser, db: DbSession):
@@ -122,9 +128,18 @@ def get_owned_project(db: DbSession, user: User, project_id: int, *options) -> P
 def preview_import(body: ImportRequest, user: CurrentUser):
     return parse_or_http_error(body.text)
 
-@router.patch("/{project_id}", response_model=ProjectSummary)
+@router.patch("/{project_id}", response_model=ProjectDetail)
 def update_project(project_id: int, body: ProjectUpdate, user: CurrentUser, db: DbSession):
-    project = get_owned_project(db, user, project_id)
-    project.title = body.title
+    project = get_owned_project(db, user, project_id, selectinload(Project.milestones))
+    updates = body.model_dump(exclude_unset=True)
+
+    if "title" in updates:
+        if updates["title"] is None:
+            raise HTTPException(status_code=422, detail=["Title cannot be empty"])
+        project.title = updates["title"]
+    if "resume_insert" in updates:
+        project.resume_insert = updates["resume_insert"] or None
+
     db.commit()
     return project
+

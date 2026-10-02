@@ -47,5 +47,6 @@ export type ProjectDetail = ProjectSummary & {
   context: PlanContext | null
   created_at: string
   completed_at: string | null
+  resume_insert: string | null
   milestones: MilestoneOut[]
 }

@@ -3,12 +3,13 @@ import confetti from 'canvas-confetti'
 import { Link, Navigate, useParams } from 'react-router'
 import ProgressBar from './ProgressBar'
 import { useProject } from './useProject'
+import ResumeInsert from './ResumeInsert'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
 function CompletePage() {
   const { projectId } = useParams()
-  const { project, errors, loading } = useProject(Number(projectId))
+  const { project, errors, loading, setProject } = useProject(Number(projectId))
   const isComplete = project?.status === 'completed'
 
   useEffect(() => {
@@ -48,6 +49,7 @@ function CompletePage() {
       <p>
         You completed {total} milestones in {days} {days === 1 ? 'day' : 'days'}.
       </p>
+      <ResumeInsert project={project} onSaved={setProject} />
       <p>
         <Link to={`/projects/${project.id}`}>Back to the project</Link>
       </p>
